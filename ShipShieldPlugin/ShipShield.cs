@@ -1,6 +1,7 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Sandbox.ModAPI;
+using ShipShieldPlugin.Utility;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -25,7 +26,7 @@ namespace ShipShieldPlugin
 
 
 
-    public class ShipShield 
+    public class ShipShield : SEModAPIExtensions.API.Plugin.IPlugin
     {
         public static readonly string ShipShieldSubtypeId = "ShipShield"; 
         public ShipShield()
@@ -51,10 +52,14 @@ namespace ShipShieldPlugin
             try
             {
 
+                InjectionHelper.Initialize();
+                InjectionHelper.WaitForIntializationCompletion();
 
+                var MyProjectile = SEModAPIInternal.API.Common.SandboxGameAssemblyWrapper.Instance.GetAssemblyType("Sandbox.Game.Weapons", "MyProjectile");
 
-            File.Copy("Sandbox.Game.dll", "Sandbox.Game.dll.tmp",true);
-                var sandboxasm = AssemblyDefinition.ReadAssembly("Sandbox.Game.dll.tmp");
+     
+
+                var sandboxasm = AssemblyDefinition.ReadAssembly("Sandbox.Game.dll");
                 if (sandboxasm != null)
                 {
                     var MyProjectileDef = sandboxasm.Modules
@@ -80,25 +85,39 @@ namespace ShipShieldPlugin
 
                     MemoryStream sandboxStream = new MemoryStream();
 
-                    File.Copy("Sandbox.Game.dll", "Sandbox.Game.dll.bak", true);
-                    sandboxasm.Write("Sandbox.Game.dll");
+                    sandboxasm.Write(sandboxStream);
 
 
-                    //var changeSandboxAssembly = Assembly.Load(sandboxStream.ToArray());
+                    var changeSandboxAssembly = Assembly.Load(sandboxStream.ToArray());
 
-                    //var changeMyProjectile = changeSandboxAssembly.GetType("Sandbox.Game.Weapons.MyProjectile");
+                    var changeMyProjectile = changeSandboxAssembly.GetType("Sandbox.Game.Weapons.MyProjectile");
 
-                    //MethodInfo changeMyProjectileDoDamage = changeMyProjectile.GetMethod("DoDamage", BindingFlags.NonPublic | BindingFlags.Instance);
-                    //var ilCodes = changeMyProjectileDoDamage.GetMethodBody().GetILAsByteArray();
+                    MethodInfo changeMyProjectileDoDamage = changeMyProjectile.GetMethod("DoDamage", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var ilCodes = changeMyProjectileDoDamage.GetMethodBody().GetILAsByteArray();
+
+                    FileStream fs = new FileStream("outil.bin", FileMode.Create);
+                    fs.Write(ilCodes, 0, ilCodes.Length);
+                    fs.Close();
 
 
-                    //MethodInfo MyProjectileDoDamage = MyProjectile.GetMethod("DoDamage", BindingFlags.NonPublic | BindingFlags.Instance);
-                    //InjectionHelper.UpdateILCodes(MyProjectileDoDamage, ilCodes);
+                    MethodInfo replaceMethod = this.GetType().GetMethod("MyProjectileDoDamage", BindingFlags.Public | BindingFlags.Static);
+                    Logging.WriteLineAndConsole("replaceMethod.MetadataToken"+ replaceMethod.MetadataToken);
+
+
+                    MethodInfo MyProjectileDoDamage = changeMyProjectile.GetMethod("DoDamage", BindingFlags.NonPublic | BindingFlags.Instance);
+                    InjectionHelper.UpdateILCodes(MyProjectileDoDamage, ilCodes);
+
+
+                    var mpi = changeSandboxAssembly.CreateInstance("Sandbox.Game.Weapons.MyProjectile");
+
+
+
+                    MyProjectileDoDamage.Invoke(mpi, new object[] { new VRageMath.Vector3D(), null });
                 }
             }
             catch (Exception e)
             {
-                //Logging.WriteLineAndConsole(e.ToString());
+                Logging.WriteLineAndConsole(e.ToString());
             }
 
         }
