@@ -31,7 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Cecil">
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Mdb">
@@ -53,6 +54,9 @@
     <Reference Include="SEModAPIInternal">
       <HintPath>E:\SteamLibrary\SteamApps\common\SpaceEngineers\DedicatedServer64\SEModAPIInternal.dll</HintPath>
     </Reference>
+    <Reference Include="SEModHookWarp">
+      <HintPath>E:\SteamLibrary\SteamApps\common\SpaceEngineers\DedicatedServer64\SEModHookWarp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -71,8 +75,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CreateDynamicMethod.cs" />
-    <Compile Include="InjectionHelper.cs" />
     <Compile Include="ShipShield.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utility\Utility.cs" />
