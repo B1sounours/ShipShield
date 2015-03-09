@@ -49,8 +49,6 @@ namespace ShipShieldPlugin
             try
             {
 
-
-
                 File.Copy("Sandbox.Game.dll", "Sandbox.Game.dll.tmp", true);
                 var sandboxasm = AssemblyDefinition.ReadAssembly("Sandbox.Game.dll.tmp");
                 if (sandboxasm != null)
@@ -70,44 +68,47 @@ namespace ShipShieldPlugin
                         File.Copy("Sandbox.Game.dll", "Sandbox.Game.dll.bak", true);
                         sandboxasm.Write("Sandbox.Game.dll");
                     }
-
-                    //var changeSandboxAssembly = Assembly.Load(sandboxStream.ToArray());
-
-                    //var changeMyProjectile = changeSandboxAssembly.GetType("Sandbox.Game.Weapons.MyProjectile");
-
-                    //MethodInfo changeMyProjectileDoDamage = changeMyProjectile.GetMethod("DoDamage", BindingFlags.NonPublic | BindingFlags.Instance);
-                    //var ilCodes = changeMyProjectileDoDamage.GetMethodBody().GetILAsByteArray();
-
-
-                    //MethodInfo MyProjectileDoDamage = MyProjectile.GetMethod("DoDamage", BindingFlags.NonPublic | BindingFlags.Instance);
-                    //InjectionHelper.UpdateILCodes(MyProjectileDoDamage, ilCodes);
+                    Console.WriteLine("patch ok");
+                   
                 }
             }
             catch (Exception e)
             {
-                //Logging.WriteLineAndConsole(e.ToString());
+                Console.WriteLine("patch error");
+                Console.WriteLine(e.ToString());
             }
-
+            Console.ReadLine();
         }
 
         private static bool MyMissileChange(AssemblyDefinition sandboxasm)
         {
-            //var MyMissileDef = sandboxasm.Modules
-            //.SelectMany(m => m.Types)
-            //.Where(t => t.Name == "MyProjectile").First();
+            var MyMissileDef = sandboxasm.Modules
+            .SelectMany(m => m.Types)
+            .Where(t => t.Name == "MyMissile").First();
 
-            //var UpdateBeforeSimulationDef = MyMissileDef.Methods.FirstOrDefault(f => f.Name == "DoDamage");
-            //var work = UpdateBeforeSimulationDef.Body.GetILProcessor();
+            var UpdateBeforeSimulationDef = MyMissileDef.Methods.FirstOrDefault(f => f.Name == "UpdateBeforeSimulation");
+            var work = UpdateBeforeSimulationDef.Body.GetILProcessor();
 
-            //if (UpdateBeforeSimulationDef.Body.Instructions.First().OpCode == OpCodes.Call)
-            //{
-            //    work.InsertBefore(UpdateBeforeSimulationDef.Body.Instructions.First(), work.Create(OpCodes.Call,
-            //        sandboxasm.MainModule.Import(typeof(ShipShield).GetMethod("MyProjectileDoDamage"))));
-            //    work.InsertAfter(UpdateBeforeSimulationDef.Body.Instructions.First(), work.Create(OpCodes.Brfalse_S, UpdateBeforeSimulationDef.Body.Instructions[3]));
-            //    work.InsertBefore(UpdateBeforeSimulationDef.Body.Instructions.First(), work.Create(OpCodes.Ldarga_S, UpdateBeforeSimulationDef.Parameters[1]));
-            //    work.InsertBefore(UpdateBeforeSimulationDef.Body.Instructions.First(), work.Create(OpCodes.Ldarga_S, UpdateBeforeSimulationDef.Parameters[0]));
-            //    return true;
-            //}
+            var instructions = UpdateBeforeSimulationDef.Body.Instructions;
+
+            if (instructions.First().OpCode == OpCodes.Ldarg_0)
+            {
+                if (instructions[24].OpCode == OpCodes.Ldloca_S)
+                {
+                    int index = 23;
+                    work.InsertAfter(instructions[index++], work.Create(OpCodes.Ldarg_0));
+                    work.InsertAfter(instructions[index++], work.Create(OpCodes.Ldloc_0));
+                    work.InsertAfter(instructions[index++], work.Create(OpCodes.Ldloca_S, work.Body.Variables[1]));
+
+                    work.InsertAfter(instructions[index++], work.Create(OpCodes.Call,
+                        sandboxasm.MainModule.Import(typeof(ShipShield).GetMethod("MyMissileUpdateBeforeSimulation"))));
+
+                    Instruction o = (Instruction)instructions[4].Operand;
+                    work.InsertAfter(instructions[index++], work.Create(OpCodes.Brfalse, o));
+                    Console.WriteLine("MyMissileChange ok");
+                    return true;
+                }
+            }
             return false;
             
         }
@@ -128,12 +129,57 @@ namespace ShipShieldPlugin
                 work.InsertAfter(DoDamageDef.Body.Instructions.First(), work.Create(OpCodes.Brfalse_S, DoDamageDef.Body.Instructions[3]));
                 work.InsertBefore(DoDamageDef.Body.Instructions.First(), work.Create(OpCodes.Ldarga_S, DoDamageDef.Parameters[1]));
                 work.InsertBefore(DoDamageDef.Body.Instructions.First(), work.Create(OpCodes.Ldarga_S, DoDamageDef.Parameters[0]));
+                Console.WriteLine("MyProjectileChange ok");
                 return true;
             }
             return false;
         }
 
+        public static bool MyMissileUpdateBeforeSimulation(IMyEntity missile, float missileExplosionRadius, ref VRageMath.BoundingSphereD ed)
+        {
+            try
+            {
+                var entitys = MyAPIGateway.Entities.GetEntitiesInSphere(ref ed);
+                bool isdef = false;
+                foreach (var entityitem in entitys)
+                {
+                    var cubeGrid = entityitem as IMyCubeGrid;
+                    if (cubeGrid == null)
+                    {
+                        continue;
+                    }
 
+                    List<IMySlimBlock> shieldblocks = new List<IMySlimBlock>();
+                    cubeGrid.GetBlocks(shieldblocks, (block) =>
+                    {
+                        if (block.FatBlock == null)
+                        {
+                            return false;
+                        }
+                        return block.FatBlock.BlockDefinition.SubtypeId == ShipShieldSubtypeId;
+                    });
+
+                    foreach (var shielditem in shieldblocks)
+                    {
+                        if (shielditem.FatBlock.IsFunctional && shielditem.FatBlock.IsWorking)
+                        {
+                            isdef = true;
+                            break;
+                        }
+                    }
+                }
+                if (isdef == true)
+                {
+                    return false;
+                }
+            }
+            catch(Exception e)
+            {
+
+            }
+
+            return true;
+        }
         public static bool MyProjectileDoDamage(ref VRageMath.Vector3D hitPosition, ref IMyEntity damagedEntity)
         {
             var cubeGrid = damagedEntity as IMyCubeGrid;
