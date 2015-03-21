@@ -49,6 +49,10 @@
       <HintPath>E:\SteamLibrary\SteamApps\common\SpaceEngineers\DedicatedServer64\Sandbox.Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="SEModAPIInternal">
+      <HintPath>E:\SteamLibrary\SteamApps\common\SpaceEngineers\DedicatedServer64\SEModAPIInternal.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -56,10 +60,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="VRage.Common">
-      <HintPath>E:\SteamLibrary\SteamApps\common\SpaceEngineers\DedicatedServer64\VRage.Common.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="VRage.Library">
       <HintPath>E:\SteamLibrary\SteamApps\common\SpaceEngineers\DedicatedServer64\VRage.Library.dll</HintPath>
       <Private>False</Private>
@@ -76,9 +76,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utility\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
