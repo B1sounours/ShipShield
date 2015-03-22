@@ -209,27 +209,34 @@ namespace ShipShieldPlugin
                     {
                         if (shielditem.FatBlock.IsFunctional && shielditem.FatBlock.IsWorking)
                         {
-                            SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGridEntity cube =
-                                new SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGridEntity((Sandbox.Common.ObjectBuilders.MyObjectBuilder_CubeGrid)cubeGrid.GetObjectBuilder(), cubeGrid);
+                            SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGridEntity cube = null;
+                            SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity BatteryBlockEntity = null;
 
-                            SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity BatteryBlockEntity =
-                                new SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity(cube, (Sandbox.Common.ObjectBuilders.MyObjectBuilder_BatteryBlock)shielditem.FatBlock.GetObjectBuilderCubeBlock(), shielditem);
+                            BatteryBlockEntity = (SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity)SEModAPIInternal.API.Common.GameEntityManager.GetEntity(shielditem.FatBlock.EntityId);
 
-                            if (BatteryBlockEntity.CurrentStoredPower > damage)
+                            var BatteryBlock = (Sandbox.Common.ObjectBuilders.MyObjectBuilder_BatteryBlock)shielditem.FatBlock.GetObjectBuilderCubeBlock();
+                            if (BatteryBlockEntity == null)
                             {
-                                BatteryBlockEntity.CurrentStoredPower -= damage;
+                                cube = new SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGridEntity((Sandbox.Common.ObjectBuilders.MyObjectBuilder_CubeGrid)cubeGrid.GetObjectBuilder(), cubeGrid);
+                                BatteryBlockEntity = new SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity(cube, (Sandbox.Common.ObjectBuilders.MyObjectBuilder_BatteryBlock)shielditem.FatBlock.GetObjectBuilderCubeBlock(), shielditem);
+                            }
+
+                            if (BatteryBlock.CurrentStoredPower > damage)
+                            {
+                                BatteryBlockEntity.CurrentStoredPower = BatteryBlock.CurrentStoredPower - damage;
                                 isdef = true;
                                 break;
                             }
                             else
                             {
-                                if (BatteryBlockEntity.CurrentStoredPower > 0)
+                                if (BatteryBlock.CurrentStoredPower > 0)
                                 {
                                     BatteryBlockEntity.CurrentStoredPower = 0;
                                     isdef = true;
                                     break;
                                 }
                             }
+
 
                         }
                     }
@@ -239,7 +246,7 @@ namespace ShipShieldPlugin
                     return false;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
 
             }
@@ -271,30 +278,35 @@ namespace ShipShieldPlugin
                     if (shielditem.FatBlock.IsFunctional && shielditem.FatBlock.IsWorking)
                     {
                         // hitPosition = shielditem.FatBlock.WorldMatrix.Translation;
-                        SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGridEntity cube =
-                              new SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGridEntity((Sandbox.Common.ObjectBuilders.MyObjectBuilder_CubeGrid)cubeGrid.GetObjectBuilder(), cubeGrid);
-                        var builder = (Sandbox.Common.ObjectBuilders.MyObjectBuilder_BatteryBlock)shielditem.FatBlock.GetObjectBuilderCubeBlock();
-                        SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity BatteryBlockEntity =
-                            new SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity(cube,
-                              builder, shielditem);
+                        SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGridEntity cube = null;
+                        SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity BatteryBlockEntity = null;
 
-                 
+                        BatteryBlockEntity = (SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity)SEModAPIInternal.API.Common.GameEntityManager.GetEntity(shielditem.FatBlock.EntityId);
 
-                        if (BatteryBlockEntity.CurrentStoredPower > damage)
+                        var BatteryBlock = (Sandbox.Common.ObjectBuilders.MyObjectBuilder_BatteryBlock)shielditem.FatBlock.GetObjectBuilderCubeBlock();
+                        if (BatteryBlockEntity == null)
                         {
-                            BatteryBlockEntity.CurrentStoredPower -= damage;
+                            cube = new SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGridEntity((Sandbox.Common.ObjectBuilders.MyObjectBuilder_CubeGrid)cubeGrid.GetObjectBuilder(), cubeGrid);
+                            BatteryBlockEntity = new SEModAPIInternal.API.Entity.Sector.SectorObject.CubeGrid.CubeBlock.BatteryBlockEntity(cube, (Sandbox.Common.ObjectBuilders.MyObjectBuilder_BatteryBlock)shielditem.FatBlock.GetObjectBuilderCubeBlock(), shielditem);
+                        }
+
+
+                        if (BatteryBlock.CurrentStoredPower > damage)
+                        {
+                            BatteryBlockEntity.CurrentStoredPower = BatteryBlock.CurrentStoredPower - damage;
                             isdef = true;
                             break;
                         }
                         else
                         {
-                            if(BatteryBlockEntity.CurrentStoredPower>0 )
+                            if (BatteryBlock.CurrentStoredPower > 0)
                             {
                                 BatteryBlockEntity.CurrentStoredPower = 0;
                                 isdef = true;
                                 break;
                             }
                         }
+
                     }
                 }
 
