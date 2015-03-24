@@ -44,8 +44,9 @@ namespace ShipShieldPlugin
         {
             try
             {
-
-                //File.Copy("Sandbox.Game.dll", "Sandbox.Game.dll.tmp", true);
+#if !DEBUG
+                File.Copy("Sandbox.Game.dll", "Sandbox.Game.dll.tmp", true);
+#endif
                 var sandboxasm = AssemblyDefinition.ReadAssembly("Sandbox.Game.dll.tmp");
                 if (sandboxasm != null)
                 {
